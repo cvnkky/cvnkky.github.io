@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup Your Profile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body, html {
+            width: 960px; height: 540px; overflow: hidden;
+            background: linear-gradient(rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.2)), 
+                        url("game_bg.png") no-repeat center center;
+            background-size: cover; backdrop-filter: blur(20px); 
+            font-family: 'Segoe UI', sans-serif;
+            display: flex; justify-content: center; align-items: center;
+            position: relative;
+        }
+
+        @keyframes menuPop {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+
+        .error-shake { animation: shake 0.3s ease-in-out; border: 3px solid #ff4f81 !important; }
+
+        #setup-container {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 40px 50px;
+            border-radius: 40px;
+            text-align: center;
+            width: 600px; 
+            box-shadow: 0 20px 45px rgba(232, 143, 179, 0.4);
+            border: 3px solid white;
+            animation: menuPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        #profile-preview-container {
+            width: 120px; height: 120px; border-radius: 50%;
+            background: white; margin: 0 auto 15px; border: 4px solid #f9dbe6;
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden; box-shadow: 0 8px 20px rgba(232, 143, 179, 0.3);
+        }
+
+        #captured-image { width: 100%; height: 100%; object-fit: cover; transform: scale(1.2); }
+        #default-avatar { font-size: 50px; color: #f9dbe6; font-weight: 900; }
+
+        h2.animated-title {
+            color: #e88fb3; margin-bottom: 25px; text-transform: uppercase;
+            letter-spacing: 3px; font-size: 40px; font-weight: 900; 
+            text-shadow: 2px 2px 0px white;
+            animation: titleFloat 3s ease-in-out infinite;
+            display: inline-block;
+        }
+
+        h2.still-title {
+            color: #e88fb3; text-transform: uppercase;
+            letter-spacing: 3px; font-weight: 900; 
+            text-shadow: 2px 2px 0px white;
+            display: inline-block;
+        }
+
+        @keyframes titleFloat {
+            0%, 100% { transform: translateY(0) scale(1); text-shadow: 2px 2px 0px white; }
+            50% { transform: translateY(-5px) scale(1.02); text-shadow: 0px 0px 15px rgba(232, 143, 179, 0.6); color: #f06292; }
+        }
+
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
+
+        .option-card {
+            background: white; padding: 15px 10px; border-radius: 20px;
+            cursor: pointer; transition: all 0.3s ease; border: 3px solid #f9dbe6;
+        }
+        .option-card:hover { transform: scale(1.05); border-color: #e88fb3; }
+        .option-label { font-weight: 800; font-size: 16px; text-transform: uppercase; color: #e88fb3; }
+
+        input[type="text"] {
+            width: 80%; padding: 12px 25px; border-radius: 50px;
+            border: 3px solid #f9dbe6; outline: none;
+            font-size: 18px; font-weight: 700; color: #f06292;
+            text-align: center; background: rgba(255, 255, 255, 0.9);
+        }
+
+        .next-btn {
+            position: absolute; bottom: 25px; right: 25px;
+            background: linear-gradient(to bottom, #ffffff 0%, #f9dbe6 100%);
+            color: #e88fb3; padding: 8px 30px; border-radius: 50px;
+            font-size: 16px; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 1.5px; border: 3px solid #ffffff;
+            box-shadow: 0 5px 15px rgba(232, 143, 179, 0.3);
+            transition: all 0.3s ease-in-out; cursor: pointer;
+            display: inline-block;
+        }
+        .next-btn:hover {
+            transform: scale(1.05); background: #ffffff; color: #f06292;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 1), 0 8px 25px rgba(232, 143, 179, 0.5);
+        }
+
+        #camera-modal, #avatar-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6); display: none; 
+            justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(10px);
+        }
+        #camera-content, #avatar-content {
+            background: white; padding: 25px; border-radius: 40px;
+            text-align: center; border: 4px solid #e88fb3;
+            animation: menuPop 0.4s ease-out;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        
+        #webcam-container {
+            position: relative;
+            width: 280px; height: 280px;
+            margin: 15px 0;
+            border-radius: 50%;
+            border: 8px solid #f9dbe6;
+            overflow: hidden;
+        }
+
+        #webcam { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+
+        #shutter-flash {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; opacity: 0; pointer-events: none; z-index: 10;
+        }
+
+        @keyframes flashEffect {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .avatar-grid { display: flex; gap: 20px; margin: 20px 0; }
+        
+        .avatar-choice { 
+            width: 180px; height: 180px; border-radius: 20px; 
+            border: 4px solid #f9dbe6; cursor: pointer; 
+            transition: all 0.3s ease-in-out; overflow: hidden; background: #fff; 
+        }
+        .avatar-choice:hover {
+            transform: scale(1.1); border-color: #e88fb3;
+            box-shadow: 0 0 20px rgba(232, 143, 179, 0.4);
+        }
+
+        .avatar-choice img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.2); }
+
+        .snap-btn, .close-btn { 
+            text-decoration: none; display: inline-block;
+            background: linear-gradient(to bottom, #ffffff 0%, #f9dbe6 100%);
+            color: #e88fb3; padding: 10px 30px; border-radius: 50px;
+            font-size: 16px; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 1.5px; border: 4px solid #ffffff; cursor: pointer;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.8), 0 8px 25px rgba(232, 143, 179, 0.4);
+            transition: all 0.3s ease-in-out; outline: none; margin: 5px;
+        }
+        .snap-btn:hover, .close-btn:hover {
+            transform: scale(1.08); background: #ffffff; color: #f06292;
+            box-shadow: 0 0 25px rgba(255, 255, 255, 1), 0 12px 35px rgba(232, 143, 179, 0.7);
+        }
+        .snap-btn:active, .close-btn:active { transform: scale(0.95); }
+
+        .camera-controls { display: flex; justify-content: center; gap: 10px; width: 100%; }
+    </style>
+</head>
+<body>
+
+    <div id="camera-modal">
+        <div id="camera-content">
+            <h2 class="still-title" style="font-size: 32px; margin-bottom: 10px;">SMILE!</h2>
+            <div id="webcam-container">
+                <video id="webcam" autoplay playsinline></video>
+                <div id="shutter-flash"></div>
+            </div>
+            <div class="camera-controls">
+                <button onclick="snapPhoto()" class="snap-btn">CAPTURE</button>
+                <button onclick="closeCamera()" class="close-btn">CANCEL</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="avatar-modal">
+        <div id="avatar-content">
+            <h2 class="still-title" style="font-size: 32px; margin-bottom: 10px;">CHOOSE AVATAR</h2>
+            <div class="avatar-grid">
+                <div class="avatar-choice" onclick="selectAvatar('girl.png')"><img src="girl.png"></div>
+                <div class="avatar-choice" onclick="selectAvatar('boy.png')"><img src="boy.png"></div>
+            </div>
+            <button onclick="closeGallery()" class="close-btn">CANCEL</button>
+        </div>
+    </div>
+
+    <div id="setup-container">
+        <div id="profile-preview-container">
+            <img id="captured-image" src="" style="display:none;">
+            <div id="default-avatar">?</div>
+        </div>
+        <h2 class="animated-title">WHO ARE YOU?</h2>
+        <div class="options-grid">
+            <div class="option-card" id="opt-photo" onclick="openCamera()">
+                <span style="font-size:35px; display:block;">📸</span>
+                <span class="option-label">Take Photo</span>
+            </div>
+            <div class="option-card" id="opt-avatar" onclick="openGallery()">
+                <span style="font-size:35px; display:block;">✨</span>
+                <span class="option-label">Choose Avatar</span>
+            </div>
+        </div>
+        <input type="text" placeholder="ENTER NICKNAME..." id="player-name">
+    </div>
+
+    <button onclick="saveAndContinue()" class="next-btn">Next</button>
+
+    <script>
+        const video = document.getElementById('webcam');
+        const camModal = document.getElementById('camera-modal');
+        const avModal = document.getElementById('avatar-modal');
+        const capturedImage = document.getElementById('captured-image');
+        const defaultAvatar = document.getElementById('default-avatar');
+        const nameInput = document.getElementById('player-name');
+        const flashDiv = document.getElementById('shutter-flash');
+
+        function saveAndContinue() {
+            const name = nameInput.value.trim();
+            const avatarSrc = capturedImage.src;
+            let hasError = false;
+
+            nameInput.classList.remove('error-shake');
+            document.getElementById('opt-photo').classList.remove('error-shake');
+            document.getElementById('opt-avatar').classList.remove('error-shake');
+
+            if(!name) {
+                nameInput.classList.add('error-shake');
+                hasError = true;
+            }
+            if(!avatarSrc || capturedImage.style.display === 'none') {
+                document.getElementById('opt-photo').classList.add('error-shake');
+                document.getElementById('opt-avatar').classList.add('error-shake');
+                hasError = true;
+            }
+
+            if(hasError) return;
+
+            localStorage.setItem('playerName', name);
+            localStorage.setItem('playerAvatar', avatarSrc);
+            window.location.href = "page3.html";
+        }
+
+        async function openCamera() {
+            camModal.style.display = 'flex';
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+            } catch (err) { alert("Camera error!"); closeCamera(); }
+        }
+
+        function closeCamera() {
+            const stream = video.srcObject;
+            if (stream) stream.getTracks().forEach(track => track.stop());
+            camModal.style.display = 'none';
+        }
+
+        function snapPhoto() {
+            flashDiv.style.animation = 'none';
+            void flashDiv.offsetWidth; 
+            flashDiv.style.animation = 'flashEffect 0.4s ease-out';
+
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth; 
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            capturedImage.src = canvas.toDataURL('image/png');
+            capturedImage.style.display = 'block';
+            
+            capturedImage.style.transform = 'scaleX(-1) scale(1.2)'; 
+            defaultAvatar.style.display = 'none';
+            
+            setTimeout(closeCamera, 300);
+        }
+
+        function openGallery() { avModal.style.display = 'flex'; }
+        function closeGallery() { avModal.style.display = 'none'; }
+        
+        function selectAvatar(imgSrc) {
+            capturedImage.src = imgSrc;
+            capturedImage.style.display = 'block';
+            
+            capturedImage.style.transform = 'scaleX(1) scale(1.2)'; 
+            defaultAvatar.style.display = 'none';
+            closeGallery();
+        }
+    </script>
+</body>
+</html>

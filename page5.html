@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Dilemma - The Negotiation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body, html {
+            width: 960px; height: 540px; overflow: hidden;
+            background: #1a1a1a url("screen.png") no-repeat center center;
+            background-size: cover;
+            font-family: 'Montserrat', sans-serif;
+            display: flex; flex-direction: column;
+            position: relative;
+        }
+
+        .blur-target { transition: filter 0.3s ease; }
+        .active-blur { filter: blur(8px); pointer-events: none; }
+
+        #hud-profile {
+            position: absolute; top: 25px; left: 25px;
+            display: flex; align-items: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 6px 15px 6px 6px;
+            border-radius: 50px; border: 3px solid #e88fb3;
+            box-shadow: 0 5px 15px rgba(232, 143, 179, 0.3); z-index: 1000;
+        }
+        #mini-avatar { width: 45px; height: 45px; border-radius: 50%; border: 2px solid #f9dbe6; object-fit: cover; margin-right: 10px; background: white; }
+        #hud-name { color: #e88fb3; font-weight: 800; font-size: 14px; letter-spacing: 1px; }
+
+        .chat-header { margin-top: 15px; margin-bottom: 15px; display: flex; flex-direction: column; align-items: center; width: 100%; flex-shrink: 0; }
+        .seller-avatar-container { overflow: hidden; border-radius: 50%; border: 3px solid #e88fb3; width: 45px; height: 45px; background: white; }
+        .seller-avatar { width: 100%; height: 100%; object-fit: cover; transform: scale(1.3); } 
+        .header-info { text-align: center; margin-top: 8px; }
+        .header-info b { font-size: 14px; color: #d81b60; font-weight: 800; display: block; }
+        .view-profile { font-size: 11px; color: #e88fb3; text-decoration: underline; cursor: pointer; font-weight: 600; margin-top: 2px; display: inline-block; position: relative; z-index: 10; }
+
+        #chat-box { 
+            flex: 1; width: 100%; padding: 10px 130px; 
+            display: flex; flex-direction: column; 
+            align-items: flex-start; gap: 12px; overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+        #chat-box::-webkit-scrollbar { display: none; }
+
+        .msg { max-width: 60%; padding: 12px 16px; border-radius: 15px; font-size: 12.5px; font-weight: 600; line-height: 1.4; animation: pop 0.3s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 5px; }
+        .seller { background: #f4b8d0; color: white; border-bottom-left-radius: 2px; align-self: flex-start; }
+        .player { background: #e88fb3; color: white; border-bottom-right-radius: 2px; align-self: flex-end; }
+        
+        .typing { display: flex; gap: 4px; align-items: center; width: fit-content; padding: 12px 16px; }
+        .dot { width: 6px; height: 6px; background: white; border-radius: 50%; animation: bounce 1.4s infinite; }
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes bounce { 0%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-6px); } }
+
+        .risk-alert { align-self: center; background: rgba(255, 255, 255, 0.9); border: 1.5px dashed #d81b60; color: #d81b60; font-size: 11px; font-weight: 800; padding: 8px 18px; border-radius: 8px; text-align: center; max-width: 75%; margin: 10px 0; animation: warningPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        
+        .ticket-img { 
+            width: 150px; 
+            border-radius: 10px; 
+            margin-top: 8px; 
+            border: 2px solid rgba(255,255,255,0.5); 
+            cursor: zoom-in; 
+            transition: 0.2s; 
+            display: block;
+        }
+        .ticket-img:hover { transform: scale(1.05); border-color: #e88fb3; }
+
+        #bottom-dock { width: 100%; flex-shrink: 0; padding-bottom: 100px; opacity: 0; transition: opacity 0.1s ease-out; }
+        #bottom-dock.visible { opacity: 1; }
+        #chat-divider { width: 80%; height: 2px; background: rgba(232, 143, 179, 0.4); margin: 0 auto 15px auto; border-radius: 2px; }
+        #controls { display: flex; flex-direction: row; justify-content: center; gap: 20px; padding: 0 80px; }
+
+        .choice-btn { 
+            background: linear-gradient(to bottom, #ffffff 0%, #f9dbe6 100%);
+            color: #e88fb3; padding: 12px 20px; border-radius: 50px; 
+            font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 800; 
+            letter-spacing: 1px; border: 3px solid #ffffff;
+            box-shadow: 0 5px 15px rgba(232, 143, 179, 0.3); cursor: pointer; transition: all 0.3s ease;
+            flex: 1; max-width: 350px; text-align: center;
+        }
+        .choice-btn:hover { transform: scale(1.05) translateY(-3px); color: #f06292; box-shadow: 0 8px 20px rgba(232, 143, 179, 0.5); }
+
+        #profile-modal, #finale-modal {
+            position: absolute; top: 0; left: 0; width: 960px; height: 540px;
+            display: none; justify-content: center; align-items: flex-start;
+            background: rgba(0, 0, 0, 0.5); z-index: 5000;
+        }
+        .modal-content {
+            background: white; width: 360px; padding: 30px; border-radius: 25px;
+            border: 4px solid #e88fb3; text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin-top: 60px;
+            animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .modal-avatar-zoom { width: 80px; height: 80px; border-radius: 50%; border: 3px solid #e88fb3; margin: 0 auto 10px; overflow: hidden; }
+        .modal-avatar-zoom img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.3); }
+        .modal-username { color: #d81b60; font-weight: 900; font-size: 18px; margin-bottom: 15px; display: block; }
+        .stats-row { display: flex; justify-content: space-around; margin-bottom: 15px; border-top: 1px solid #eee; border-bottom: 1px solid #eee; padding: 10px 0; }
+        .stat { display: flex; flex-direction: column; font-size: 12px; color: #666; font-weight: 600; }
+        .stat b { color: #d81b60; font-size: 14px; }
+        .bio { font-size: 11px; color: #444; line-height: 1.4; margin-bottom: 15px; font-style: italic; }
+        
+        .back-btn {
+            background: linear-gradient(to bottom, #ffffff 0%, #f9dbe6 100%);
+            color: #e88fb3; padding: 10px 30px; border-radius: 50px;
+            font-size: 14px; font-weight: 800; 
+            letter-spacing: 1.5px; border: 3px solid #ffffff;
+            box-shadow: 0 5px 15px rgba(232, 143, 179, 0.3);
+            transition: 0.3s; cursor: pointer; font-family: 'Montserrat', sans-serif;
+        }
+        .back-btn:hover { transform: scale(1.05) translateY(-2px); color: #f06292; box-shadow: 0 8px 20px rgba(232, 143, 179, 0.5); }
+
+        @keyframes pop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes warningPop { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+        #finale-modal .modal-content {
+            margin-top: 100px; 
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="sfx-cash" src="cash.mp3"></audio>
+    <audio id="sfx-safe" src="safe.mp3"></audio>
+    <audio id="sfx-scammed" src="scammed.mp3"></audio>
+
+    <div id="image-modal" style="display:none; position:absolute; top:0; left:0; width:960px; height:540px; background:rgba(0,0,0,0.8); z-index:6000; justify-content:center; align-items:center; flex-direction: column;" onclick="closeImage()">
+        <img id="zoomed-ticket" src="" style="max-width:90%; max-height:85%; border:5px solid white; border-radius:15px; box-shadow: 0 0 30px rgba(0,0,0,0.5);">
+        <p style="color: white; margin-top: 15px; font-weight: 600; font-size: 14px;">Tap anywhere to close</p>
+    </div>
+
+    <div id="profile-modal">
+        <div class="modal-content">
+            <div class="modal-avatar-zoom"><img src="scammer.png" alt="Seller"></div>
+            <span class="modal-username">@KTix_Safe_Resell</span>
+            <div class="stats-row">
+                <div class="stat"><b>0</b> Followers</div>
+                <div class="stat"><b>0</b> Mutuals</div>
+                <div class="stat"><b>Recently</b> Joined</div>
+            </div>
+            <p class="bio">"Verified Reseller | Only selling to real fans | DM for proof | No refunds, first come first serve!"</p>
+            <button class="back-btn" onclick="closeProfile()">BACK TO CHAT</button>
+        </div>
+    </div>
+
+    <div id="finale-modal">
+        <div class="modal-content">
+            <h1 id="finale-title" style="color: #d81b60; font-weight: 900; margin-bottom: 15px;"></h1>
+            <p id="finale-text" style="font-size: 14px; color: #444; margin-bottom: 25px; line-height: 1.4; font-weight: 600;"></p>
+            <button class="choice-btn" onclick="goToSecurityBriefing()">FINISH GAME</button>
+        </div>
+    </div>
+
+    <div id="main-content" class="blur-target" style="height: 100%; display: flex; flex-direction: column;">
+        <div id="hud-profile">
+            <img id="mini-avatar" src="" alt="">
+            <span id="hud-name">USER</span>
+        </div>
+
+        <div class="chat-header">
+            <div class="seller-avatar-container">
+                <img src="scammer.png" class="seller-avatar" alt="Seller">
+            </div>
+            <div class="header-info">
+                <b>@KTix_Safe_Resell</b>
+                <span class="view-profile" onclick="viewProfile()">Tap to view profile</span>
+            </div>
+        </div>
+
+        <div id="chat-box"></div>
+        
+        <div id="bottom-dock">
+            <div id="chat-divider"></div>
+            <div id="controls"></div>
+        </div>
+    </div>
+
+    <script>
+        const chatBox = document.getElementById('chat-box');
+        const controls = document.getElementById('controls');
+        const bottomDock = document.getElementById('bottom-dock');
+        const modal = document.getElementById('profile-modal');
+        const finaleModal = document.getElementById('finale-modal');
+        const mainContent = document.getElementById('main-content');
+
+        let canClick = true;
+
+        const savedName = localStorage.getItem('playerName') || "Player";
+        const savedAvatar = localStorage.getItem('playerAvatar') || "girl.png";
+        document.getElementById('hud-name').innerText = savedName;
+        document.getElementById('mini-avatar').src = savedAvatar;
+
+        const gameScript = {
+            "start": {
+                sellerMsg: "Hey! I saw you're looking for Everlast tickets, I have a pair of VIP tickets for sale. Just want them to go to a real fan!",
+                risk: "🚩 RISK: Beware of 'friendly' backstories. Scammers use fake emotions to build quick trust. Try checking their profile for possible red flags!",
+                choices: [
+                    { text: "OMG YES! How much are the tickets?", next: "step2_fast" },
+                    { text: "Can I see the ticket proof?", next: "step2_proof" }
+                ]
+            },
+            "step2_fast": {
+                sellerMsg: "It's $150 each! My friend can't make it so I'm selling 2 VIP tickets and I need them sold ASAP. It's such a steal!",
+                risk: "🚩 RISK: Unrealistically low prices trigger impulsive decisions, often leading to buyers overlooking red flags.",
+                choices: [
+                    { text: "Okay! How do I pay?", next: "step3_urgency" },
+                    { text: "Wait, why is it so cheap?", next: "step2_defensive" }
+                ]
+            },
+            "step2_proof": {
+                sellerMsg: "Yes sure! Here is the screenshot of one of the tickets. I covered the information for safety reasons. Looks good?",
+                image: "ticket.png", 
+                risk: "🚩 RISK: Scammers often use stolen or edited screenshots. Check for unusual texts/text placement.",
+                choices: [
+                    { text: "Okay looks legit. Let's do it!", next: "step3_urgency" },
+                    { text: "The date looks edited...", next: "step2_defensive" }
+                ]
+            },
+            "step2_defensive": {
+                sellerMsg: "Look, I'm just a fan trying to help. If you don't trust me, I'll just sell the tickets to the other 3 interested buyers messaging me.",
+                risk: "🚩 RISK: Guilt-tripping or getting angry is often used to pressure you into dropping your doubts.",
+                choices: [
+                    { text: "Sorry! I'll take them.", next: "step3_urgency" },
+                    { text: "Forget it then.", next: "scam_avoided" }
+                ]
+            },
+            "step3_urgency": {
+                sellerMsg: "Awesome. But be quick, someone else just offered $200. If you pay in the next 10 minutes via PayNow, the tickets are yours for $150!",
+                risk: "🚩 RISK: False Urgency. They want you to act before you even have time to think.",
+                choices: [
+                    { text: "Okay I want the tickets!", next: "step4_payment" },
+                    { text: "Hold on, I need a minute...", next: "step4_payment" }
+                ]
+            },
+            "step4_payment": {
+                sellerMsg: "Okay! Just PayNow to +65 12345678. Send a screenshot once you're done and I'll send you the PDF tickets immediately!",
+                risk: "🚩 RISK: Avoid making online payment, as a refund is extremely difficult and never guaranteed if the seller disappears.",
+                choices: [
+                    { text: "Paid! Please check your PayNow.", next: "finale_scammed", image: "paynow.png" },
+                    { text: "Actually, can we deal in person?", next: "step2_defensive" }
+                ]
+            }
+        };
+
+        let finalOutcome = "";
+
+        function goToSecurityBriefing() {
+            localStorage.setItem('gameOutcome', finalOutcome);
+            window.location.href = 'page6.html';
+        }
+
+        function forceScroll() {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function addMessage(text, type, hasImage = null) {
+            const m = document.createElement('div');
+            m.className = `msg ${type}`;
+            m.innerText = text;
+            if (hasImage) {
+                const img = document.createElement('img');
+                img.src = hasImage;
+                img.className = "ticket-img";
+                img.onclick = () => openImage(hasImage);
+                m.appendChild(img);
+            }
+            chatBox.appendChild(m);
+            forceScroll();
+        }
+
+        function openImage(src) {
+            const imgModal = document.getElementById('image-modal');
+            document.getElementById('zoomed-ticket').src = src;
+            imgModal.style.display = 'flex';
+            mainContent.classList.add('active-blur');
+        }
+
+        function closeImage() {
+            document.getElementById('image-modal').style.display = 'none';
+            mainContent.classList.remove('active-blur');
+        }
+
+        function showTyping(callback) {
+            const t = document.createElement('div');
+            t.className = "msg seller typing";
+            t.id = "typing-indicator";
+            t.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+            chatBox.appendChild(t);
+            forceScroll();
+            setTimeout(() => {
+                t.remove();
+                callback();
+            }, 1500);
+        }
+
+        function triggerFinale(title, text) {
+            document.getElementById('finale-title').innerText = title;
+            document.getElementById('finale-text').innerText = text;
+            mainContent.classList.add('active-blur');
+            
+            if(title.includes("SAFE")) {
+                document.getElementById('sfx-safe').play();
+            } else {
+                document.getElementById('sfx-scammed').play();
+            }
+            
+            finaleModal.style.display = 'flex';
+        }
+
+        function handleChoice(choiceObj) {
+            if (!canClick) return;
+            canClick = false;
+
+            bottomDock.classList.remove('visible');
+            controls.innerHTML = "";
+            
+            if (choiceObj.text.includes("Paid!")) {
+                document.getElementById('sfx-cash').play();
+            }
+
+            addMessage(choiceObj.text, 'player', choiceObj.image);
+
+            if (choiceObj.next === "scam_avoided") {
+                finalOutcome = "SAFE";
+                setTimeout(() => {
+                    addMessage("System: You ended the chat. Better safe than sorry!", 'seller');
+                    setTimeout(() => triggerFinale("✅ SAFE!", "You spotted the red flags and kept your money safe."), 3000);
+                }, 1000);
+                return;
+            }
+            
+            if (choiceObj.next === "finale_scammed") {
+                finalOutcome = "SCAMMED";
+                setTimeout(() => {
+                    addMessage("System: @KTix_Safe_Resell is no longer reachable. You been blocked.", 'seller');
+                    setTimeout(() => triggerFinale("❌ SCAMMED!", "You transferred $300, but the seller blocked you. Always verify before you make payment."), 4000);
+                }, 2000);
+                return;
+            }
+
+            setTimeout(() => {
+                showTyping(() => {
+                    const nextData = gameScript[choiceObj.next];
+                    addMessage(nextData.sellerMsg, 'seller', nextData.image);
+                    setTimeout(() => {
+                        const rMsg = document.createElement('div');
+                        rMsg.className = "risk-alert";
+                        rMsg.innerText = nextData.risk;
+                        chatBox.appendChild(rMsg);
+                        forceScroll(); 
+                        canClick = true;
+                        showChoices(choiceObj.next);
+                    }, 1000);
+                });
+            }, 800);
+        }
+
+        function showChoices(stepKey) {
+            const stepData = gameScript[stepKey];
+            controls.innerHTML = "";
+            bottomDock.classList.add('visible');
+            stepData.choices.forEach(choice => {
+                const btn = document.createElement('button');
+                btn.className = "choice-btn";
+                btn.innerText = choice.text;
+                btn.onclick = () => handleChoice(choice);
+                controls.appendChild(btn);
+            });
+            forceScroll(); 
+        }
+
+        function viewProfile() { modal.style.display = 'flex'; mainContent.classList.add('active-blur'); }
+        function closeProfile() { modal.style.display = 'none'; mainContent.classList.remove('active-blur'); }
+
+        window.onload = () => {
+            showTyping(() => {
+                addMessage(gameScript["start"].sellerMsg, 'seller');
+                setTimeout(() => {
+                    const rMsg = document.createElement('div');
+                    rMsg.className = "risk-alert";
+                    rMsg.innerText = gameScript["start"].risk;
+                    chatBox.appendChild(rMsg);
+                    forceScroll();
+                    showChoices("start");
+                }, 1000);
+            });
+        };
+    </script>
+</body>
+</html>

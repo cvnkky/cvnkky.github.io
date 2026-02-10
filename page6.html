@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Brief - Results</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body, html {
+            width: 960px; height: 540px; overflow: hidden;
+            background: #1a1a1a url("screen.png") no-repeat center center;
+            background-size: cover;
+            font-family: 'Montserrat', sans-serif;
+            display: flex; justify-content: center; align-items: center;
+            position: relative;
+        }
+
+        body::before {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px); z-index: 1;
+        }
+
+        .container {
+            position: relative; z-index: 2;
+            width: 880px; height: 460px;
+            background: white; border-radius: 30px;
+            border: 6px solid #e88fb3;
+            display: flex; overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes pop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        @keyframes glitch {
+            0% { transform: translate(0); text-shadow: -2px 0 #ff0000, 2px 0 #00ffff; }
+            40% { transform: translate(-2px, -2px); text-shadow: 2px 0 #ff0000, -2px 0 #00ffff; }
+            100% { transform: translate(0); }
+        }
+        .glitch-active { animation: glitch 0.3s infinite; }
+
+        @keyframes pinkGlow {
+            0%, 100% { box-shadow: 0 0 10px #e88fb3; }
+            50% { box-shadow: 0 0 30px #e88fb3; border-color: #f06292; }
+        }
+        .safe-active { animation: pinkGlow 2s infinite ease-in-out; }
+
+        .status-sidebar {
+            width: 320px; padding: 25px;
+            background: #f9dbe6;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            text-align: center; border-right: 4px dashed #e88fb3;
+        }
+
+        .status-icon { font-size: 60px; margin-bottom: 15px; }
+        .status-title { font-weight: 900; font-size: 28px; color: #d81b60; line-height: 1.1; margin-bottom: 15px; }
+        .status-msg { font-size: 15px; font-weight: 600; color: #666; line-height: 1.5; }
+
+        .briefing-content { 
+            flex: 1; padding: 30px 45px; 
+            display: flex; flex-direction: column; 
+            justify-content: center;
+            position: relative; 
+        }
+
+        h2 { color: #e88fb3; font-weight: 900; font-size: 24px; margin-bottom: 20px; letter-spacing: 1px; text-transform: uppercase; text-align: left; }
+
+        .flag-item { display: flex; align-items: flex-start; margin-bottom: 18px; opacity: 0; animation: slideIn 0.5s ease forwards; }
+        .flag-item:nth-child(1) { animation-delay: 0.1s; }
+        .flag-item:nth-child(2) { animation-delay: 0.2s; }
+        .flag-item:nth-child(3) { animation-delay: 0.3s; }
+        .flag-item:nth-child(4) { animation-delay: 0.4s; }
+        .flag-item:nth-child(5) { animation-delay: 0.5s; }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+
+        .flag-bullet {
+            background: #e88fb3; color: white;
+            width: 28px; height: 28px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 900; font-size: 14px; margin-right: 15px; flex-shrink: 0;
+        }
+
+        .flag-text b { display: block; color: #333; font-size: 13px; margin-bottom: 2px; }
+        .flag-text p { color: #555; font-size: 12.5px; line-height: 1.4; font-weight: 400; }
+
+        .restart-btn {
+            background: linear-gradient(to bottom, #ffffff 0%, #f9dbe6 100%);
+            color: #e88fb3; 
+            border-radius: 50px;
+            font-family: 'Montserrat', sans-serif; 
+            font-weight: 800;
+            text-transform: uppercase; 
+            border: 4px solid #ffffff;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.8), 0 8px 25px rgba(232, 143, 179, 0.4);
+            cursor: pointer; 
+            transition: all 0.3s ease-in-out;
+            letter-spacing: 1.5px;
+            text-decoration: none;
+            display: inline-block;
+            position: absolute; bottom: 15px; right: 25px;
+            padding: 8px 20px; font-size: 11px;
+        }
+
+        .restart-btn:hover {
+            transform: scale(1.08);
+            background: #ffffff;
+            color: #f06292;
+            box-shadow: 0 0 25px rgba(255, 255, 255, 1), 0 12px 35px rgba(232, 143, 179, 0.7);
+        }
+
+        .home-btn {
+            position: absolute; top: 15px; left: 15px; z-index: 10;
+            background: #fce4ec; border: 4px solid #e88fb3;
+            width: 52px; height: 52px; border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            padding: 10px;
+        }
+        
+        .home-btn img {
+            width: 100%; height: 100%; object-fit: contain;
+            filter: brightness(0) saturate(100%) invert(17%) sepia(91%) saturate(3475%) hue-rotate(325deg) brightness(91%) contrast(93%);
+        }
+
+        .home-btn:hover { background: #ffffff; transform: scale(1.1); }
+
+        #confirm-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(12px);
+            z-index: 5000; display: none; justify-content: center; align-items: center;
+        }
+
+        .confirm-modal {
+            background: rgba(255, 255, 255, 0.95);
+            width: 400px; padding: 35px; 
+            border-radius: 30px; border: 5px solid #e88fb3;
+            text-align: center; 
+            box-shadow: 0 15px 35px rgba(232, 143, 179, 0.3);
+            animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .confirm-modal h3 { 
+            color: #e88fb3; font-weight: 900; font-size: 26px; 
+            margin-bottom: 12px; text-transform: uppercase; letter-spacing: 2px;
+        }
+
+        .confirm-modal p { 
+            color: #444; font-size: 14px; font-weight: 400; 
+            margin-bottom: 25px; line-height: 1.5; 
+        }
+
+        .confirm-buttons { display: flex; gap: 15px; justify-content: center; }
+
+        .confirm-btn {
+            background: linear-gradient(to bottom, #ffffff 0%, #f9dbe6 100%);
+            color: #e88fb3; 
+            padding: 10px 30px; 
+            border-radius: 50px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 13px; 
+            font-weight: 900; 
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            border: 3px solid #ffffff; 
+            cursor: pointer;
+            box-shadow: 0 8px 15px rgba(232, 143, 179, 0.2);
+            transition: all 0.3s ease-in-out;
+        }
+
+        .confirm-btn:hover {
+            transform: scale(1.08); 
+            background: #ffffff;
+            color: #f06292;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 1), 0 10px 20px rgba(232, 143, 179, 0.4);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="confirm-overlay">
+        <div class="confirm-modal">
+            <h3>WAIT!</h3>
+            <p>Are you sure you want to return<br> to the start page?</p>
+            <div class="confirm-buttons">
+                <button class="confirm-btn" onclick="goHome()">YES</button>
+                <button class="confirm-btn" onclick="closeModal()">NO</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" id="main-container">
+        <button class="home-btn" onclick="openModal()" title="Return to Home">
+            <img src="icon.png" alt="Home">
+        </button>
+
+        <div class="status-sidebar" id="sidebar">
+            <div id="result-icon" class="status-icon"></div>
+            <h1 id="result-title" class="status-title"></h1>
+            <p id="result-msg" class="status-msg"></p>
+        </div>
+
+        <div class="briefing-content">
+            <h2>Security Brief: 5 Tips</h2>
+            <ul style="list-style:none;">
+                <li class="flag-item"><div class="flag-bullet">1</div><div class="flag-text"><b>Purchase Only from Authorised Sellers</b><p>Always buy tickets from official channels (e.g., Ticketmaster). Avoid third-party resellers on other platforms if possible.</p></div></li>
+                <li class="flag-item"><div class="flag-bullet">2</div><div class="flag-text"><b>Request Proof of Purchase (With Caution)</b><p>Ask for the original confirmation email or a screen recording of the seller logging into their Ticketmaster account.</p></div></li>
+                <li class="flag-item"><div class="flag-bullet">3</div><div class="flag-text"><b>Check the Seller's Profile</b><p>Scammers use accounts with 0 followers and no history. Trust verified sources only.</p></div></li>
+                <li class="flag-item"><div class="flag-bullet">4</div><div class="flag-text"><b>Low Prices are Red Flags</b><p>If the price is significantly lower than market rate, it’s likely a scam to lure you in.</p></div></li>
+                <li class="flag-item"><div class="flag-bullet">5</div><div class="flag-text"><b>Verify via ScamShield & Helpline</b><p>Call the official ScamShield Helpline at 1799 if you are unsure if something is a scam.</p></div></li>
+            </ul>
+            <button class="restart-btn" onclick="window.location.href='page5.html'">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        const outcome = localStorage.getItem('gameOutcome') || "SAFE";
+        const playerName = localStorage.getItem('playerName') || "Fan";
+        const overlay = document.getElementById('confirm-overlay');
+
+        document.getElementById('result-title').innerText = outcome === "SAFE" ? "YOU ARE SAFE!" : "SCAMMED!";
+        document.getElementById('result-icon').innerText = outcome === "SAFE" ? "🛡️" : "⚠️";
+        document.getElementById('result-msg').innerText = outcome === "SAFE" ? `Great job, ${playerName}. You saw through the scams! But scammers are always evolving, read the final Security Brief to sharpen your skills!` : `Unfortunately, ${playerName}, you fell for the trap. Read the security brief to protect yourself next time.`;
+        
+        if (outcome === "SAFE") document.getElementById('main-container').classList.add('safe-active');
+        else document.getElementById('result-title').classList.add('glitch-active');
+
+        function openModal() { overlay.style.display = 'flex'; }
+        function closeModal() { overlay.style.display = 'none'; }
+        function goHome() { window.location.href = 'page1.html'; }
+    </script>
+</body>
+</html>

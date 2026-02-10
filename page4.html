@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Dilemma - Ticket Search</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body, html {
+            width: 960px;
+            height: 540px;
+            overflow: hidden;
+            background: #1a1a1a url("screen.png") no-repeat center center;
+            background-size: cover;
+            font-family: 'Montserrat', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        #mission-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(12px);
+            z-index: 3000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .mission-box {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px 60px;
+            border-radius: 40px;
+            border: 4px solid #e88fb3;
+            width: 750px; 
+            min-height: 380px; 
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            box-shadow: 0 20px 45px rgba(232, 143, 179, 0.3);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        #text-content {
+            height: 140px; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transition: opacity 0.3s ease;
+            width: 100%;
+        }
+
+        .mission-box h2 { color: #e88fb3; font-size: 32px; margin-bottom: 15px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; }
+        .mission-box p { color: #444; font-size: 18px; line-height: 1.5; font-weight: 400; }
+        .mission-box p b { font-weight: 800; color: #333; }
+
+        .btn-mission {
+            background: linear-gradient(to bottom, #ffffff 0%, #f9dbe6 100%);
+            color: #e88fb3; 
+            padding: 12px 50px; 
+            border-radius: 50px;
+            font-size: 18px; 
+            font-weight: 900; 
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border: 4px solid #ffffff; 
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(232, 143, 179, 0.2);
+            transition: all 0.3s ease-in-out;
+            margin-top: 30px;
+        }
+
+        .btn-mission:hover {
+            transform: scale(1.08); 
+            background: #ffffff;
+            color: #f06292;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 1), 0 12px 25px rgba(232, 143, 179, 0.4);
+        }
+
+        .pulse-anim {
+            animation: pulse 2s infinite ease-in-out;
+        }
+
+        #hud-profile {
+            position: absolute;
+            top: 30px; left: 30px;
+            display: flex; align-items: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px 25px 10px 10px;
+            border-radius: 60px;
+            border: 4px solid #e88fb3;
+            z-index: 10;
+        }
+        #mini-avatar { width: 65px; height: 65px; border-radius: 50%; object-fit: cover; margin-right: 15px; background: white; }
+        #hud-name { color: #e88fb3; font-weight: 900; text-transform: uppercase; font-size: 20px; letter-spacing: 2px; }
+    </style>
+</head>
+<body>
+
+    <div id="hud-profile">
+        <img id="mini-avatar" src="" alt="">
+        <span id="hud-name">USER</span>
+    </div>
+
+    <div id="mission-overlay">
+        <div class="mission-box">
+            <div id="text-content">
+                <h2 id="mission-title">TICKETMASTER: SOLD OUT!</h2>
+                <p id="mission-description">Everlast "Forever Young" World Tour tickets are officially sold out. <br> - You need <b>2 VIP tickets</b> for you and your best friend.<br> - Your only hope now is a <b>third-party reseller</b>...</p><br>
+            </div>
+            <button id="mission-btn" class="btn-mission" onclick="handleMission()">Next</button>
+        </div>
+    </div>
+
+    <script>
+        const savedName = localStorage.getItem('playerName') || "Player";
+        const savedAvatar = localStorage.getItem('playerAvatar') || "girl.png";
+        document.getElementById('hud-name').innerText = savedName;
+        document.getElementById('mini-avatar').src = savedAvatar;
+
+        let missionStep = 1;
+
+        function handleMission() {
+            const textContent = document.getElementById('text-content');
+            const title = document.getElementById('mission-title');
+            const desc = document.getElementById('mission-description');
+            const btn = document.getElementById('mission-btn');
+
+            if (missionStep === 1) {
+                textContent.style.opacity = "0";
+                
+                setTimeout(() => {
+                    title.innerText = "STAY SHARP.";
+                    desc.innerHTML = "Your goal is to find out if this is a <b>scammer</b> or a <b>genuine reseller</b>. <br>Every click matters, be careful - not everyone online is truthful. <br>Ready to start?</b>";
+                    
+                    btn.innerText = "Start";
+                    btn.classList.add('pulse-anim');
+                    
+                    textContent.style.opacity = "1";
+                    missionStep = 2;
+                }, 300);
+
+            } else {
+                const box = document.querySelector('.mission-box');
+                box.style.transition = "all 0.5s ease";
+                box.style.transform = "scale(0.9)";
+                box.style.opacity = "0";
+                
+                setTimeout(() => {
+                    window.location.href = "page5.html";
+                }, 500);
+            }
+        }
+
+        if (savedAvatar.startsWith('data:image')) {
+            document.getElementById('mini-avatar').style.transform = 'scaleX(-1)';
+        }
+    </script>
+</body>
+</html>
