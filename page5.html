@@ -336,7 +336,7 @@
             if (choiceObj.next === "finale_scammed") {
                 finalOutcome = "SCAMMED";
                 setTimeout(() => {
-                    addMessage("System: @KTix_Safe_Resell is no longer reachable. You been blocked.", 'seller');
+                    addMessage("System: @KTix_Safe_Resell is no longer reachable. You have been blocked.", 'seller');
                     setTimeout(() => triggerFinale("❌ SCAMMED!", "You transferred $300, but the seller blocked you. Always verify before you make payment."), 4000);
                 }, 2000);
                 return;
